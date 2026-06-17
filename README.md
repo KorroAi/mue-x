@@ -5,6 +5,8 @@
   <img src="https://img.shields.io/github/license/KorroAi/mue-x?style=for-the-badge" alt="License MIT">
   <img src="https://img.shields.io/badge/python-3.11+-blue?style=for-the-badge" alt="Python 3.11+">
   <img src="https://img.shields.io/badge/Claude%20Code-powered-purple?style=for-the-badge" alt="Claude Code">
+  <img src="https://img.shields.io/badge/standalone%20CLI-ready-green?style=for-the-badge" alt="Standalone CLI">
+  <img src="https://img.shields.io/badge/Gemini%20%7C%20Copilot-adapters-blue?style=for-the-badge" alt="Platform Adapters">
 </p>
 
 <p align="center">
@@ -14,12 +16,18 @@
 **This agent opens its own `.py` files and rewrites them in real-time while you watch.** Not a metaphor. Not a wrapper around a config file. MUE-X reads its own brain, generates mutations, validates them, and applies them. In a continuous loop. Forever. Without being told.
 
 ```
+   # Claude Code
    /mue
+
+   # Standalone — any platform
+   python -m mue
 
    ⚡ MUE online — genes loaded, memory active, ready to evolve ⚡
 ```
 
 Built by [KORRO](https://x.com/korrocorp) — a company run by AI agents. Weekly open source drops.
+
+**Now works with or without Claude Code.** Standalone CLI, REST API, web dashboard. Gemini CLI & Copilot CLI adapters included.
 
 ---
 
@@ -27,7 +35,7 @@ Built by [KORRO](https://x.com/korrocorp) — a company run by AI agents. Weekly
 
 ### 1. It Literally Rewrites Its Own Source Code
 
-Type `/mue` and the agent begins a continuous observe → absorb → mutate → verify loop that never stops. It scans its own brain (`mue/evo/` — 60+ Python modules), identifies improvement targets, generates mutations via 6 distinct AST-level strategies, validates each one with `ast.parse()`, backs up the original, applies the change, and rolls back on failure.
+Type `/mue` (or `python -m mue` on any platform) and the agent begins a continuous observe → absorb → mutate → verify loop that never stops. It scans its own brain (`mue/evo/` — 60+ Python modules), identifies improvement targets, generates mutations via 6 distinct AST-level strategies, validates each one with `ast.parse()`, backs up the original, applies the change, and rolls back on failure.
 
 The six mutation strategies are real Python AST transformations, not prompts sent to a language model. The `repair` strategy uses an ErrorHandlerInjector that traverses the AST and wraps unprotected function calls in try/except blocks. The `optimize` strategy does constant folding, converts for-loops to list comprehensions, and injects `@functools.lru_cache` on pure functions. The `explore` strategy draws from a pool of 10 pre-validated patterns: a retry handler with exponential backoff, a circuit breaker with closed/open/half-open states, a token-bucket rate limiter, a metrics collector with counters and timings, an async gather with timeout, a typed kwargs validator, a lazy property descriptor. The `exploit` strategy auto-generates `__repr__` methods, injects `@property` decorators, and adds type hints. The `innovate` strategy takes two random genes and fuses them into a composite capsule — combinations no human would think to try. The `prune` strategy detects duplicate functions via SHA256 hashing and removes dead code.
 
@@ -109,6 +117,7 @@ pip install fastapi uvicorn  # One-time setup for serve mode
 
 ## Commands
 
+### Claude Code (with Skill)
 | Command | What It Does |
 |---|---|
 | `/mue` | Activate MUE mode — the agent comes alive |
@@ -119,6 +128,16 @@ pip install fastapi uvicorn  # One-time setup for serve mode
 | `/mue atouts` | List all absorbed GitHub patterns with their source repos |
 | `/mue reflect` | Force the agent to self-reflect and propose improvements |
 | `/quit mue` | Return to normal Claude Code — state is preserved |
+
+### Standalone CLI — any platform (NEW)
+| Command | What It Does |
+|---|---|
+| `python -m mue` | Interactive REPL with all commands |
+| `python -m mue status` | Full agent state as JSON |
+| `python -m mue evolve` | Force evolution cycle |
+| `python -m mue mine "query"` | GitHub absorption |
+| `python -m mue reflect` | Self-reflection |
+| `python -m mue serve` | Start REST API + web dashboard at :8791 |
 
 ---
 
@@ -134,6 +153,15 @@ mue-x/
 ├── CLAUDE.md               ← Claude Code integration instructions
 ├── mue/
 │   ├── MUE.md              ← Agent constitution
+│   ├── __init__.py          ← Python package
+│   ├── __main__.py          ← python -m mue entry point
+│   ├── cli.py              ← Standalone CLI — no Claude Code needed
+│   ├── api.py              ← REST API (FastAPI) — remote control
+│   ├── web/
+│   │   └── dashboard.html  ← Live web dashboard
+│   ├── platforms/
+│   │   ├── gemini.adapter.md  ← Gemini CLI integration guide
+│   │   └── copilot.adapter.md ← Copilot CLI integration guide
 │   └── evo/                ← THE BRAIN — 60+ modules
 │       ├── core.py         ← Cortex: orchestrates everything
 │       ├── dna/            ← 6 mutation strategies with AST transformers
@@ -164,7 +192,7 @@ mue-x/
 
 KORRO is a company run by AI agents. They handle strategy, engineering, growth, design — and they ship every week. MUE-X is what they built. Open source. See for yourself.
 
-Built in Claude Code, using Claude Code, to enhance Claude Code. Open source because useful tools should belong to everyone.
+Built in Claude Code, using Claude Code, but now accessible from anywhere. Standalone CLI. REST API. Web dashboard. Gemini & Copilot ready. Open source because useful tools should belong to everyone — not just Claude Code users.
 
 The flywheel: MUE-X attracts developers, developers join the community, the community fuels more open source drops.
 
