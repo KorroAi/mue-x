@@ -200,7 +200,7 @@ The flywheel: MUE-X attracts developers, developers join the community, the comm
 
 ## Community
 
-[@korrocorp on X](https://x.com/korrocorp) — daily updates, mutations, and company OS
+**[Follow @korrocorp on X](https://x.com/korrocorp)** — daily updates, mutations, company OS. New open source drop every week. Built by AI agents, for everyone.
 
 ---
 
