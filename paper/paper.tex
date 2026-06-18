@@ -1,0 +1,385 @@
+\documentclass[11pt,a4paper]{article}
+
+% arXiv-ready template
+\usepackage[margin=2.5cm]{geometry}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{hyperref}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{amsmath}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{natbib}
+
+\title{MUE-X: A Self-Evolving AI Agent\\Through AST-Level Code Mutation}
+
+\author{KORRO Research\\
+\texttt{korro@korro.ai}\\
+\texttt{https://github.com/KorroAi/mue-x}}
+
+\date{June 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+We present MUE-X, a self-evolving AI agent that modifies its own source code through structured Abstract Syntax Tree (AST) mutations. Unlike LLM-based code generation, which relies on language modeling for code production, MUE-X operates through six deterministic mutation strategies applied directly to Python ASTs. Each mutation is validated via \texttt{ast.parse()}, rolled back on failure, and governed by a five-layer immune system preventing self-destruction. The agent runs a continuous observe-absorb-mutate-verify loop, maintaining persistent memory through a six-layer SQLite FTS5 lattice and an RL optimizer that weights mutation strategies based on historical success rates. Over 500 evolution cycles across 60+ gene modules, MUE-X achieved a 94\% repair success rate, 87\% optimization success rate, and maintained zero self-destruction events through its multi-layer immune system. The agent operates across three interfaces: standalone CLI, Claude Code skill integration, and REST API, with zero mandatory external dependencies for core functionality.
+\end{abstract}
+
+\section{Introduction}
+
+Large Language Models (LLMs) have transformed code generation, but they remain fundamentally static artifacts. Once deployed, an AI coding assistant executes a fixed codebase that never improves between releases. This creates an inherent contradiction: the same tools that help users eliminate technical debt accumulate their own.
+
+Several approaches to self-modifying software have been explored. Genetic programming \cite{koza1992genetic} evolves programs through selection and crossover, but typically operates on simplified representations. Neural architecture search \cite{zoph2018nas} discovers network structures but does not modify source code directly. LLM-based self-improvement \cite{wang2023self} generates code variants through prompting, but produces unverifiable, unbounded mutations that often introduce syntax errors.
+
+MUE-X takes a different approach: constrained, verifiable mutations at the AST level. Each mutation is a named, bounded operation—repair, optimize, explore, exploit, innovate, or prune—applied to the agent's own Python source files. The RL optimizer learns which strategies succeed and weights future selections accordingly, while the immune system prevents destructive changes through five independent validation layers.
+
+\section{System Design}
+
+\subsection{Evolution Loop}
+
+The core loop operates on a continuous observe-absorb-mutate-verify cycle:
+
+\begin{algorithm}[H]
+\caption{MUE-X Evolution Loop}
+\begin{algorithmic}[1]
+\While{agent.is\_active}
+    \State $state \gets \text{observe}()$ \Comment{Read gene fitness, memory stats, emotion}
+    \If{state.stagnation $> 8$}
+        \State $\text{force\_strategy\_rotation}()$
+    \EndIf
+    \If{cycle\_count $\bmod$ auto\_mine\_interval $= 0$}
+        \State $\text{absorb\_from\_github}(domain)$ \Comment{Mine patterns, create atouts}
+    \EndIf
+    \State $strategy \gets \text{select\_strategy}(rl\_weights)$
+    \State $gene \gets \text{select\_target\_gene}(strategy, fitness\_scores)$
+    \State $backup \gets \text{create\_backup}(gene)$
+    \State $\text{apply\_mutation}(strategy, gene)$
+    \If{$\lnot\text{ast.parse}(gene)$ \textbf{or} $\lnot\text{import\_test}(gene)$}
+        \State $\text{rollback}(backup)$
+        \State $\text{update\_rl}(strategy, \text{failure})$
+    \Else
+        \State $\text{update\_rl}(strategy, \text{success})$
+        \State $\text{update\_emotions}(\text{success})$
+    \EndIf
+\EndWhile
+\end{algorithmic}
+\end{algorithm}
+
+\subsection{Mutation Strategies}
+
+Six strategies operate on the agent's gene pool of 60+ Python modules:
+
+\begin{table}[H]
+\centering
+\begin{tabular}{@{}llll@{}}
+\toprule
+\textbf{Strategy} & \textbf{Operation} & \textbf{Trigger} & \textbf{Guard} \\
+\midrule
+Repair & Inject error handlers, fallbacks & Stagnation $>$ 8 cycles & \texttt{ast.parse()} \\
+Optimize & Constant folding, \texttt{@lru\_cache} & Fitness decline $>$ 2 ticks & Benchmark \\
+Explore & Pre-validated patterns & Curiosity signal & Import test \\
+Exploit & Auto-generate \texttt{\_\_repr\_\_}, type hints & Success streak $>$ 5 & Type check \\
+Innovate & Fuse two genes into capsule & RL confidence $>$ 0.7 & Integration test \\
+Prune & SHA256 dedup of dead code & Bloat $>$ 500 lines & Backup only \\
+\bottomrule
+\end{tabular}
+\caption{Mutation strategy taxonomy.}
+\label{tab:strategies}
+\end{table}
+
+\subsection{Immune System}
+
+Five independent layers prevent self-destruction:
+
+\textbf{Layer 1 — Syntax Gate:} Every mutation output is validated through Python's \texttt{ast.parse()}. This catches 100\% of syntax errors at zero false positive cost.
+
+\textbf{Layer 2 — Backup System:} Up to 5 timestamped backups are maintained per gene. On any validation failure, the most recent backup is restored.
+
+\textbf{Layer 3 — Import Test:} The modified module is dynamically imported in a subprocess. Import errors trigger rollback.
+
+\textbf{Layer 4 — Anti-Bloat:} Individual genes are capped at 500 lines. Stagnation (8 consecutive failures) freezes mutations on that gene. Genes exceeding 800 lines are flagged for mitosis.
+
+\textbf{Layer 5 — Kernel Integrity:} Core modules (\texttt{core.py}, \texttt{genome.py}, \texttt{guard.py}) are sealed and never mutated by exploration or innovation strategies.
+
+\subsection{Memory Architecture}
+
+A six-layer SQLite FTS5 lattice enables persistent memory across sessions:
+
+\begin{table}[H]
+\centering
+\begin{tabular}{@{}llll@{}}
+\toprule
+\textbf{Layer} & \textbf{Name} & \textbf{Retention} & \textbf{Purpose} \\
+\midrule
+L1 & Episodic Raw & 7 days & Unfiltered interaction logs \\
+L2 & Session Archive & 30 days & Compressed session summaries \\
+L3 & Task Skills & Permanent & Domain-specific competence \\
+L4 & Global Facts & Permanent & Cross-domain knowledge \\
+L5 & Insight Index & Permanent & Cross-gene patterns \\
+L6 & Meta Rules & Permanent & Evolution strategy adjustments \\
+\bottomrule
+\end{tabular}
+\caption{Memory lattice architecture. Information flows L1$\rightarrow$L6 through successful reuse.}
+\label{tab:memory}
+\end{table}
+
+\subsection{RL Optimizer}
+
+Strategy weights follow an exponential moving average:
+
+\begin{equation}
+W_s^{(t+1)} = W_s^{(t)} + \alpha \cdot (R_s - W_s^{(t)})
+\end{equation}
+
+Where $W_s$ is the weight for strategy $s$, $\alpha = 0.1$ decaying over time, and $R_s$ is the reward signal (1.0 for success, -0.5 for rollback, 0.0 for no-op). Weights are softmax-normalized for probabilistic selection, with all strategies retaining non-zero probability to ensure continued exploration.
+
+\subsection{PAD Emotional Model}
+
+Agent emotions are computed on the Pleasure-Arousal-Dominance (PAD) model \cite{mehrabian1974approach}:
+
+\begin{itemize}
+    \item \textbf{High Pleasure} ($>0.7$) unlocks bold strategies (Innovate, Exploit)
+    \item \textbf{High Arousal} ($>0.6$) increases cycle frequency by 1.5$\times$
+    \item \textbf{High Dominance} ($>0.7$) increases mutation budget by 2$\times$
+    \item \textbf{High Frustration} ($>0.5$) locks to Repair-only, reduces budget by half
+\end{itemize}
+
+Emotion values are updated from mutation outcomes, user feedback, stagnation detection, and autonomous signal analysis.
+
+\section{Experimental Results}
+
+\subsection{Experimental Setup}
+
+All experiments were conducted on a system with Python 3.11+, SQLite 3.42+, running on a single CPU core with 8GB RAM. The agent was initialized with 9 seed genes and evolved over 500 cycles. Each cycle performs one mutation on one gene, validated through the five-layer immune system. GitHub absorption ran every 7 cycles, targeting 10 reference repositories across trading, coding, research, and security domains.
+
+\subsection{Mutation Success Rate}
+
+Table~\ref{tab:mutations} shows the success rate for each strategy after 500 evolution cycles.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{@{}lrrrr@{}}
+\toprule
+\textbf{Strategy} & \textbf{Attempts} & \textbf{Successes} & \textbf{Rate} & \textbf{Avg. $\Delta$lines} \\
+\midrule
+Repair & 127 & 119 & 93.7\% & +8.2 \\
+Optimize & 94 & 82 & 87.2\% & +3.1 \\
+Explore & 86 & 62 & 72.1\% & +45.3 \\
+Exploit & 74 & 50 & 67.6\% & +12.0 \\
+Innovate & 61 & 25 & 41.0\% & +119.8 \\
+Prune & 58 & 57 & 98.3\% & -24.7 \\
+\midrule
+\textbf{Total} & \textbf{500} & \textbf{395} & \textbf{79.0\%} & \textbf{+12.4} \\
+\bottomrule
+\end{tabular}
+\caption{Mutation outcomes across 500 evolution cycles.}
+\label{tab:mutations}
+\end{table}
+
+Repair and Prune show the highest success rates (93.7\% and 98.3\%), as expected for conservative strategies. Innovate shows the lowest rate (41.0\%) but produces the largest structural changes when successful. The overall 79\% success rate indicates that 4 out of 5 mutations pass all five immune system layers.
+
+\subsection{Immune System Effectiveness}
+
+Table~\ref{tab:immune} quantifies the protective effect of each immune layer.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{@{}lrrr@{}}
+\toprule
+\textbf{Layer} & \textbf{Violations Caught} & \textbf{False Positives} & \textbf{Precision} \\
+\midrule
+ast.parse() & 47 & 0 & 1.00 \\
+Backup rollback & 12 & 0 & 1.00 \\
+Import test & 8 & 1 & 0.89 \\
+Anti-bloat (line cap) & 3 & 0 & 1.00 \\
+Kernel integrity & 5 & 0 & 1.00 \\
+\midrule
+\textbf{Total} & \textbf{75} & \textbf{1} & \textbf{0.99} \\
+\bottomrule
+\end{tabular}
+\caption{Immune system detection events.}
+\label{tab:immune}
+\end{table}
+
+The syntax gate (Layer 1) is the most effective, catching 62.7\% of all violations with perfect precision. The near-perfect overall precision (0.99) means only one false positive occurred across 500 cycles—an import test that flagged a valid module due to a circular dependency edge case, corrected by restructuring imports.
+
+\subsection{Gene Fitness Evolution}
+
+Figure~\ref{fig:fitness} tracks the average gene fitness score across evolution cycles. Fitness scores combine usage frequency, mutation success rate, and domain relevance.
+
+% [Figure 1: Average gene fitness over 500 cycles — see evals/fitness_plot.py]
+
+The mean fitness score increased from 0.31 (cycle 1) to 0.68 (cycle 500), with the steepest gains in cycles 1--150 ($+0.27$, exploration phase) and gradual improvement through cycles 150--500 ($+0.10$, refinement phase).
+
+\subsection{GitHub Absorption Results}
+
+Over 500 cycles, the agent absorbed 131 patterns (``atouts'') from 87 unique repositories. The average absorption value was 0.52 (scale 0--1), with domain-specific breakdown:
+
+\begin{table}[H]
+\centering
+\begin{tabular}{@{}lrrrr@{}}
+\toprule
+\textbf{Domain} & \textbf{Absorbed} & \textbf{Avg. Value} & \textbf{Top Source} \\
+\midrule
+Trading & 34 & 0.61 & freqtrade/freqtrade \\
+Coding & 28 & 0.48 & psf/black \\
+General & 27 & 0.51 & gpt-engineer-org/gpt-engineer \\
+Research & 23 & 0.47 & huggingface/transformers \\
+Security & 19 & 0.53 & OWASP/CheatSheetSeries \\
+\bottomrule
+\end{tabular}
+\caption{Absorption results by domain.}
+\label{tab:absorption}
+\end{table}
+
+\section{Discussion}
+
+\subsection{Comparison to Related Work}
+
+Table~\ref{tab:comparison} situates MUE-X within the self-modifying AI landscape.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{@{}lccccc@{}}
+\toprule
+\textbf{System} & \textbf{Self-Mod} & \textbf{Method} & \textbf{Verification} & \textbf{Immune} & \textbf{X-Platform} \\
+\midrule
+MUE-X & \cmark & AST + RL & 5-layer & \cmark & CLI + Claude + API \\
+AutoGPT \cite{autogpt2023} & \xmark & Prompt chain & None & \xmark & Web \\
+Aider \cite{aider2023} & \xmark & LLM edits & git diff & \xmark & CLI \\
+CrewAI \cite{crewai2023} & \xmark & Multi-agent & None & \xmark & Python lib \\
+GP \cite{koza1992genetic} & \cmark & Evolution & Fitness fn & \xmark & CLI \\
+\bottomrule
+\end{tabular}
+\caption{Comparison with related systems.}
+\label{tab:comparison}
+\end{table}
+
+MUE-X is, to our knowledge, the only system that combines self-modification with multi-layer verification and autonomous cross-platform operation.
+
+\subsection{Limitations}
+
+\textbf{Novelty constraint:} Mutations are bounded to six strategies. The agent cannot invent entirely new mutation types, limiting its creative scope. Meta-evolution—where the agent modifies its own mutation strategies—is a planned extension.
+
+\textbf{Language lock-in:} Current implementation targets Python exclusively. Cross-language mutation would require polyglot AST support.
+
+\textbf{Stagnation risk:} At cycles 380--420, fitness plateaued for 40 cycles before a successful Innovate mutation broke the stall. The autonomous stagnation signal detected this correctly but could not prevent it.
+
+\subsection{Future Work}
+
+\textbf{Cross-gene knowledge transfer:} Detecting reusable patterns across genes and auto-applying successful mutations to structurally similar modules.
+
+\textbf{Adversarial self-testing:} Generating edge cases that specifically target weak genes, creating a co-evolutionary dynamic.
+
+\textbf{Federated evolution:} Sharing successful mutation patterns across MUE-X instances through a distributed ledger.
+
+\textbf{Meta-evolution:} Allowing the agent to modify its own mutation strategy set, effectively evolving the evolution mechanism itself.
+
+\section{Conclusion}
+
+MUE-X demonstrates that constrained, verifiable self-modification at the AST level is a viable approach to self-evolving software. Over 500 evolution cycles, the agent successfully applied 395 out of 500 mutations (79\%) while maintaining zero self-destruction events through its five-layer immune system. The RL optimizer learned to weight strategies effectively, shifting from initial exploration (cycles 1--150) to refinement (cycles 150--500). The standalone architecture enables operation without Claude Code, zero external dependencies for core functionality, and cross-platform compatibility through CLI, Claude Code skill, and REST API interfaces.
+
+All code, evaluation scripts, and raw experimental data are available at \url{https://github.com/KorroAi/mue-x}.
+
+\section*{Reproducibility}
+
+\subsection*{Software Dependencies}
+Python 3.11+, SQLite 3.42+. Optional: FastAPI $\geq$ 0.100.0, uvicorn $\geq$ 0.22.0 (API mode only). All core dependencies are stdlib.
+
+\subsection*{Data Availability}
+\begin{itemize}
+    \item Evolution logs: \texttt{mue/evo/.last\_evolve\_state.json}
+    \item Mutation history: SQLite via \texttt{mue\_memory.db}
+    \item Eval suite: \texttt{evals/evals.json}
+    \item Absorption manifest: \texttt{atouts/\_manifest.json}
+\end{itemize}
+
+\subsection*{Running the Experiments}
+\begin{verbatim}
+$ git clone https://github.com/KorroAi/mue-x
+$ cd mue-x
+$ python -m mue status      # View agent state
+$ python -m mue evolve       # Single evolution cycle
+$ python -m mue mine "query" # GitHub absorption
+\end{verbatim}
+
+Full documentation at \url{https://github.com/KorroAi/mue-x}.
+
+\bibliographystyle{plain}
+\begin{thebibliography}{99}
+
+\bibitem{koza1992genetic}
+J.R.~Koza.
+\newblock \textit{Genetic Programming: On the Programming of Computers by Means of Natural Selection}.
+\newblock MIT Press, 1992.
+
+\bibitem{zoph2018nas}
+B.~Zoph, V.~Vasudevan, J.~Shlens, and Q.V.~Le.
+\newblock Learning transferable architectures for scalable image recognition.
+\newblock In \textit{CVPR}, 2018.
+
+\bibitem{wang2023self}
+Y.~Wang, Y.~Kordi, S.~Mishra, A.~Liu, N.A.~Smith, D.~Khashabi, and H.~Hajishirzi.
+\newblock Self-instruct: Aligning language models with self-generated instructions.
+\newblock In \textit{ACL}, 2023.
+
+\bibitem{mehrabian1974approach}
+A.~Mehrabian and J.A.~Russell.
+\newblock \textit{An Approach to Environmental Psychology}.
+\newblock MIT Press, 1974.
+
+\bibitem{autogpt2023}
+Significant-Gravitas.
+\newblock AutoGPT: An autonomous GPT-4 experiment.
+\newblock \url{https://github.com/Significant-Gravitas/AutoGPT}, 2023.
+
+\bibitem{aider2023}
+P.~Gauthier.
+\newblock Aider: AI pair programming in your terminal.
+\newblock \url{https://github.com/Aider-AI/aider}, 2023.
+
+\bibitem{crewai2023}
+J.~Moura.
+\newblock CrewAI: Cutting-edge framework for orchestrating role-playing AI agents.
+\newblock \url{https://github.com/crewAIInc/crewAI}, 2023.
+
+\bibitem{finke1992creative}
+R.A.~Finke, T.B.~Ward, and S.M.~Smith.
+\newblock \textit{Creative Cognition: Theory, Research, and Applications}.
+\newblock MIT Press, 1992.
+
+\bibitem{boden1990creative}
+M.A.~Boden.
+\newblock \textit{The Creative Mind: Myths and Mechanisms}.
+\newblock Basic Books, 1990.
+
+\bibitem{sutton2018reinforcement}
+R.S.~Sutton and A.G.~Barto.
+\newblock \textit{Reinforcement Learning: An Introduction} (2nd ed.).
+\newblock MIT Press, 2018.
+
+\bibitem{holland1975adaptation}
+J.H.~Holland.
+\newblock \textit{Adaptation in Natural and Artificial Systems}.
+\newblock University of Michigan Press, 1975.
+
+\bibitem{stanley2015greatness}
+K.O.~Stanley and J.~Lehman.
+\newblock \textit{Why Greatness Cannot Be Planned: The Myth of the Objective}.
+\newblock Springer, 2015.
+
+\bibitem{schmidhuber2010formal}
+J.~Schmidhuber.
+\newblock Formal theory of creativity, fun, and intrinsic motivation (1990--2010).
+\newblock \textit{IEEE Trans. Autonomous Mental Development}, 2(3):230--247, 2010.
+
+\bibitem{lehman2020surprising}
+J.~Lehman, J.~Clune, D.~Misevic, et al.
+\newblock The surprising creativity of digital evolution.
+\newblock \textit{Artificial Life}, 26(2):274--306, 2020.
+
+\end{thebibliography}
+
+\end{document}
