@@ -9,6 +9,8 @@
   <img src="https://img.shields.io/badge/Gemini%20%7C%20Copilot-ready-blue?style=for-the-badge" alt="Platform Adapters">
 </p>
 
+[English](README.md) | [简体中文](README.zh-CN.md) | [日本語](README.ja.md)
+
 <p align="center">
   <img src=".github/images/muex-hero.png" alt="MUE-X Hero" width="800">
 </p>
