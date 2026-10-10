@@ -41,5 +41,5 @@ mue/atouts/backtest_*.py
 mue/atouts/backtest_*.json
 
 # Local Claude Code session data
-.claude/mind.mv2*
-.claude/settings.local.json
+**/.claude/mind.mv2*
+**/.claude/settings.local.json
