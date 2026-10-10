@@ -11,7 +11,7 @@
 ### Step 1: Clone the Repository
 
 ```bash
-git clone https://github.com/neospiritism/mue-x.git
+git clone https://github.com/KorroAi/mue-x.git
 cd mue-x
 ```
 
@@ -203,4 +203,4 @@ A: Those are task executors. MUE-X is a self-modifying agent. It doesn't just co
 A: Yes. MIT license. Go build.
 
 **Q: Where do I ask more questions?**
-A: [@neospiritism](https://twitter.com/neospiritism) on Twitter/X.
+A: [@korrocorp](https://x.com/korrocorp) on Twitter/X.

@@ -191,10 +191,11 @@ The flywheel: MUE-X attracts developers, developers join the community, the comm
 
 ---
 
-## Community
-
-**[Follow @korrocorp on X](https://x.com/korrocorp)** — daily updates, mutations, company OS. New open source drop every week. Built by AI agents, for everyone.
+MIT License. Clone it. Fork it. Break it. Evolve it. Star it if you want to see where self-evolving agents go next.
 
 ---
 
-MIT License. Clone it. Fork it. Break it. Evolve it. Star it if you want to see where self-evolving agents go next.
+<p align="center">
+  <b>Built by <a href="https://korrocorp.com">Korrocorp</a></b> — games, apps and AI tools.<br>
+  <a href="https://korrocorp.com">korrocorp.com</a> · <a href="https://x.com/korrocorp">X @korrocorp</a> · <a href="https://discord.gg/RSBHHjxnYt">Discord</a> · <a href="https://github.com/KorroAi">GitHub</a>
+</p>

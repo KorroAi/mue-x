@@ -53,7 +53,7 @@ This project is built by vibe coders — people who build with AI assistance. If
 ## Development Setup
 
 ```bash
-git clone https://github.com/neospiritism/mue-x.git
+git clone https://github.com/KorroAi/mue-x.git
 cd mue-x
 
 # Validate brain integrity
@@ -77,4 +77,4 @@ claude
 
 ## Questions?
 
-Tweet [@neospiritism](https://twitter.com/neospiritism) or open a GitHub Discussion.
+Tweet [@korrocorp](https://x.com/korrocorp) or open a GitHub Discussion.
