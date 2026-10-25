@@ -41,7 +41,7 @@ def create_app():
     def trigger_evolve():
         a = _agent()
         result = a.chat("/mue evolve")
-        return {"ok": True, "response": result.get("response", "")}
+        return {"ok": True, "response": result.get("text", "")}
 
     @app.post("/api/mine")
     def trigger_mine(query: str = Query("AI agent patterns")):
@@ -53,7 +53,7 @@ def create_app():
     def trigger_reflect():
         a = _agent()
         result = a._handle_reflect_command()
-        return {"ok": True, "response": result.get("response", "")}
+        return {"ok": True, "response": result.get("text", "")}
 
     @app.get("/api/genes")
     def list_genes():

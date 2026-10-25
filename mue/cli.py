@@ -30,7 +30,7 @@ def cmd_status():
 def cmd_evolve():
     agent = get_agent()
     result = agent.chat("/mue evolve")
-    print(result.get("response", "Evolution complete"))
+    print(result.get("text", "Evolution complete"))
 
 
 def cmd_mine(query: str):
@@ -42,7 +42,7 @@ def cmd_mine(query: str):
 def cmd_reflect():
     agent = get_agent()
     result = agent._handle_reflect_command()
-    print(result.get("response", "Reflection complete"))
+    print(result.get("text", "Reflection complete"))
 
 
 def cmd_serve(host: str = "127.0.0.1", port: int = 8791):
@@ -110,7 +110,7 @@ def cmd_interactive():
             continue
 
         result = agent.chat(msg)
-        print(result.get("response", "(no response)"))
+        print(result.get("text", "(no response)"))
 
 
 def main():
