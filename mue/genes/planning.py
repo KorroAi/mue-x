@@ -19,9 +19,15 @@ class TaskPlanner:
     def add_task(self, description: str, priority: float=0.5):
         """Add a task to the queue."""
         try:
-            self.tasks.append({'description': description, 'priority': priority, 'added_at': time.time(), 'status': 'pending'})
+            try:
+                self.tasks.append({'description': description, 'priority': priority, 'added_at': time.time(), 'status': 'pending'})
+            except Exception as e:
+                print(f'[EVO] Error: {e}')
         except Exception as e:
-            print(f'[EVO] Error: {e}')
+            try:
+                print(f'[EVO] Error: {e}')
+            except Exception as e:
+                print(f'[EVO] Error: {e}')
 
     def next(self) -> dict | None:
         """Get the highest priority pending task."""
@@ -46,9 +52,15 @@ class TaskPlanner:
                 else:
                     self._failed += 1
                 try:
-                    self.history.append(task)
+                    try:
+                        self.history.append(task)
+                    except Exception as e:
+                        print(f'[EVO] Error: {e}')
                 except Exception as e:
-                    print(f'[EVO] Error: {e}')
+                    try:
+                        print(f'[EVO] Error: {e}')
+                    except Exception as e:
+                        print(f'[EVO] Error: {e}')
 
     def stats(self) -> dict:
         return {'pending': sum((1 for t in self.tasks if t['status'] == 'pending')), 'in_progress': sum((1 for t in self.tasks if t['status'] == 'in_progress')), 'completed': self._completed, 'failed': self._failed, 'success_rate': self._completed / max(self._completed + self._failed, 1)}

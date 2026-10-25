@@ -4,55 +4,59 @@ The agent uses this to evaluate options and make decisions.
 Very amenable to evolution: can be enhanced with better heuristics,
 Bayesian inference, or multi-step reasoning.
 """
-
 import random
-
-DECISION_WEIGHTS = {
-    "careful": {"safety": 0.5, "reward": 0.2, "speed": 0.1, "novelty": 0.2},
-    "balanced": {"safety": 0.3, "reward": 0.3, "speed": 0.2, "novelty": 0.2},
-    "bold": {"safety": 0.1, "reward": 0.4, "speed": 0.3, "novelty": 0.2},
-}
-
+DECISION_WEIGHTS = {'careful': {'safety': 0.5, 'reward': 0.2, 'speed': 0.1, 'novelty': 0.2}, 'balanced': {'safety': 0.3, 'reward': 0.3, 'speed': 0.2, 'novelty': 0.2}, 'bold': {'safety': 0.1, 'reward': 0.4, 'speed': 0.3, 'novelty': 0.2}}
 
 def evaluate_outcome(action: str, result: str, effort_seconds: float) -> dict:
     """Evaluate the outcome of an action. Returns score + learnings."""
     score = 0.0
     learnings = []
-
-    success_indicators = ["success", "done", "completed", "ok", "works", "working", "good"]
-    failure_indicators = ["failed", "error", "timeout", "cannot", "denied", "blocked", "crash"]
-
+    success_indicators = ['success', 'done', 'completed', 'ok', 'works', 'working', 'good']
+    failure_indicators = ['failed', 'error', 'timeout', 'cannot', 'denied', 'blocked', 'crash']
     result_lower = result.lower()
-    if any(s in result_lower for s in success_indicators):
+    if any((s in result_lower for s in success_indicators)):
         score += 0.7
-        learnings.append("action_succeeded")
-    if any(f in result_lower for f in failure_indicators):
+        learnings.append('action_succeeded')
+    if any((f in result_lower for f in failure_indicators)):
         score -= 0.5
-        learnings.append("action_failed")
-
-    # Penalize long execution
+        learnings.append('action_failed')
     if effort_seconds > 10:
         score -= 0.1
-        learnings.append("slow_execution")
+        learnings.append('slow_execution')
     if effort_seconds < 0.5:
         score += 0.1
-        learnings.append("fast_execution")
-
-    return {
-        "score": min(1.0, max(0.0, score + 0.5)),
-        "learnings": learnings,
-        "action": action[:100],
-    }
-
+        learnings.append('fast_execution')
+    return {'score': min(1.0, max(0.0, score + 0.5)), 'learnings': learnings, 'action': action[:100]}
 
 def select_strategy(context: dict) -> str:
     """Choose the best strategy based on context. Evolves over time."""
-    failures = context.get("recent_failures", 0)
-    successes = context.get("recent_successes", 0)
-    resources = context.get("resources", 0.5)
-
+    failures = context.get('recent_failures', 0)
+    successes = context.get('recent_successes', 0)
+    resources = context.get('resources', 0.5)
     if failures > 3:
-        return "careful"
+        return 'careful'
     if successes > 5 and resources > 0.7:
-        return "bold"
-    return "balanced"
+        return 'bold'
+    return 'balanced'
+import functools
+import time
+
+def _retry_on_failure(max_retries: int=3, delay: float=1.0, backoff: float=2.0):
+    """Decorator: retry a function on exception with exponential backoff."""
+
+    def decorator(func):
+
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            _delay = delay
+            for attempt in range(max_retries):
+                try:
+                    return func(*args, **kwargs)
+                except Exception as e:
+                    if attempt == max_retries - 1:
+                        raise
+                    time.sleep(_delay)
+                    _delay *= backoff
+            return None
+        return wrapper
+    return decorator
