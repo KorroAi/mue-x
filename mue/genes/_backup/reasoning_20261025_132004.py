@@ -50,3 +50,28 @@ def select_strategy(context: dict) -> str:
     if successes > 5 and resources > 0.7:
         return 'bold'
     return 'balanced'
+import functools
+import time
+
+def _retry_on_failure(max_retries: int=3, delay: float=1.0, backoff: float=2.0):
+    """Decorator: retry a function on exception with exponential backoff."""
+
+    def decorator(func):
+
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            _delay = delay
+            for attempt in range(max_retries):
+                try:
+                    return func(*args, **kwargs)
+                except Exception as e:
+                    if attempt == max_retries - 1:
+                        raise
+                    try:
+                        time.sleep(_delay)
+                    except Exception as e:
+                        print(f'[EVO] Error: {e}')
+                    _delay *= backoff
+            return None
+        return wrapper
+    return decorator

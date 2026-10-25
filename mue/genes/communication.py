@@ -25,9 +25,15 @@ def generate_summary(events: list[dict], max_items: int=5) -> str:
             when = str(ts)
         desc = event.get('description', str(event))[:120]
         try:
-            lines.append(f'[{when}] {desc}')
+            try:
+                lines.append(f'[{when}] {desc}')
+            except Exception as e:
+                print(f'[EVO] Error: {e}')
         except Exception as e:
-            print(f'[EVO] Error: {e}')
+            try:
+                print(f'[EVO] Error: {e}')
+            except Exception as e:
+                print(f'[EVO] Error: {e}')
     return '\n'.join(lines)
 
 def sanitize_output(text: str, max_length: int=2000) -> str:
